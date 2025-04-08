@@ -1,64 +1,42 @@
+# Updated the script to use pymongo for dropping collections
 from django.core.management.base import BaseCommand
 from octofit_tracker.models import User, Team, Activity, Leaderboard, Workout
-from bson import ObjectId
-from datetime import timedelta
+from pymongo import MongoClient
 
 class Command(BaseCommand):
-    help = 'Populate the database with test data for users, teams, activity, leaderboard, and workouts'
+    help = 'Populate the database with sample data'
 
     def handle(self, *args, **kwargs):
-        # Clear existing data
-        User.objects.all().delete()
-        Team.objects.all().delete()
-        Activity.objects.all().delete()
-        Leaderboard.objects.all().delete()
-        Workout.objects.all().delete()
+        # Connect to MongoDB
+        client = MongoClient('localhost', 27017)
+        db = client['octofit_tracker']
 
-        # Create users
-        users = [
-            User(_id=ObjectId(), email='thundergod@mhigh.edu', name='Thor', age=30, team='Blue Team'),
-            User(_id=ObjectId(), email='metalgeek@mhigh.edu', name='Tony Stark', age=35, team='Gold Team'),
-            User(_id=ObjectId(), email='zerocool@mhigh.edu', name='Steve Rogers', age=32, team='Blue Team'),
-            User(_id=ObjectId(), email='crashoverride@mhigh.edu', name='Natasha Romanoff', age=28, team='Gold Team'),
-            User(_id=ObjectId(), email='sleeptoken@mhigh.edu', name='Bruce Banner', age=40, team='Blue Team'),
-        ]
-        User.objects.bulk_create(users)
+        # Drop collections to clear existing data
+        db['octofit_tracker_user'].drop()
+        db['octofit_tracker_team'].drop()
+        db['octofit_tracker_activity'].drop()
+        db['octofit_tracker_leaderboard'].drop()
+        db['octofit_tracker_workout'].drop()
 
-        # Create teams
-        teams = [
-            Team(name='Blue Team', description='A team focused on endurance activities'),
-            Team(name='Gold Team', description='A team focused on strength training'),
-        ]
-        Team.objects.bulk_create(teams)
+        # Create and save users
+        thor = User.objects.create(email='thundergod@mhigh.edu', name='Thor', age=30, team='Blue Team')
+        tony = User.objects.create(email='ironman@mhigh.edu', name='Tony Stark', age=35, team='Red Team')
+        steve = User.objects.create(email='captain@mhigh.edu', name='Steve Rogers', age=32, team='Blue Team')
 
-        # Create activities
-        activities = [
-            Activity(user=users[0], activity_type='Cycling', duration=60, date='2025-04-01'),
-            Activity(user=users[1], activity_type='Crossfit', duration=120, date='2025-04-02'),
-            Activity(user=users[2], activity_type='Running', duration=90, date='2025-04-03'),
-            Activity(user=users[3], activity_type='Strength', duration=30, date='2025-04-04'),
-            Activity(user=users[4], activity_type='Swimming', duration=75, date='2025-04-05'),
-        ]
-        Activity.objects.bulk_create(activities)
+        # Create and save teams
+        blue_team = Team.objects.create(name='Blue Team', description='Team of heroes in blue')
+        red_team = Team.objects.create(name='Red Team', description='Team of heroes in red')
 
-        # Create leaderboard entries
-        leaderboard_entries = [
-            Leaderboard(user=users[0], points=100),
-            Leaderboard(user=users[1], points=90),
-            Leaderboard(user=users[2], points=95),
-            Leaderboard(user=users[3], points=85),
-            Leaderboard(user=users[4], points=80),
-        ]
-        Leaderboard.objects.bulk_create(leaderboard_entries)
+        # Create and save activities
+        Activity.objects.create(user=thor, activity_type='Running', duration=30, date='2025-04-01')
+        Activity.objects.create(user=tony, activity_type='Cycling', duration=45, date='2025-04-02')
 
-        # Create workouts
-        workouts = [
-            Workout(name='Cycling Training', description='Training for a road cycling event', duration=60),
-            Workout(name='Crossfit', description='Training for a crossfit competition', duration=120),
-            Workout(name='Running Training', description='Training for a marathon', duration=90),
-            Workout(name='Strength Training', description='Training for strength', duration=30),
-            Workout(name='Swimming Training', description='Training for a swimming competition', duration=75),
-        ]
-        Workout.objects.bulk_create(workouts)
+        # Create and save leaderboard entries
+        Leaderboard.objects.create(user=thor, points=100)
+        Leaderboard.objects.create(user=tony, points=150)
 
-        self.stdout.write(self.style.SUCCESS('Successfully populated the database with test data.'))
+        # Create and save workouts
+        Workout.objects.create(name='Morning Run', description='A quick morning run', duration=30)
+        Workout.objects.create(name='Evening Yoga', description='Relaxing yoga session', duration=60)
+
+        self.stdout.write(self.style.SUCCESS('Database populated successfully!'))
