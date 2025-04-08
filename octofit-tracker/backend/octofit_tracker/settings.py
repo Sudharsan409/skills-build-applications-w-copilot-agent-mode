@@ -150,3 +150,6 @@ CORS_ALLOW_HEADERS = [
     'content-type',
     'authorization',
 ]
+
+# Add the codespace Django REST API endpoint suffix to the settings
+CODESPACE_API_SUFFIX = "https://solid-spoon-jvvwj47j64c56xr-8000.app.github.dev"
