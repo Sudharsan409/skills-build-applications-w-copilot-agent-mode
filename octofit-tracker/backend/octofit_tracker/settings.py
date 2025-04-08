@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 
 from pathlib import Path
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -87,6 +88,11 @@ DATABASES = {
         'PORT': 27017,
     }
 }
+
+# Add codespace Django REST API endpoint suffix
+if 'CODESPACE_NAME' in os.environ:
+    codespace_name = os.environ['CODESPACE_NAME']
+    DATABASES['default']['HOST'] = f'{codespace_name}-27017.app.codespaces.githubusercontent.com'
 
 
 # Password validation
